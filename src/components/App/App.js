@@ -53,6 +53,25 @@ const SORTS = {
   POINTS: list => sortBy(list, 'points').reverse(),
 }
 
+
+const withUpdateSearchTopStoriesState = (hits, page) => prevState => {
+  const { searchKey, results } = prevState;
+
+  const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+
+  const updateHits = [
+    ...oldHits,
+    ...hits
+  ]
+
+  return {
+    results: {
+      ...results,
+      [searchKey]: { hits: updateHits, page }
+    },
+    isLoading: false,
+  }
+}
 class App extends Component {
 
   constructor(props) {
@@ -80,22 +99,50 @@ class App extends Component {
 
   setSearchTopStories(result) {
     const { hits, page } = result;
-    const { searchKey, results } = this.state;
 
-    const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+    //第一步 使用对象形式
+    //在setState中使用函数取代对象形式更新状态信息
+    //如果你的setState() 方法依赖于之前的状态或者属性的话，有可能在按批次执行的期间，状态或者属性的值就已经被改变了。
+    // const { searchKey, results } = this.state;
 
-    const updateHits = [
-      ...oldHits,
-      ...hits
-    ]
+    // const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
 
-    this.setState({
-      results: {
-        ...results,
-        [searchKey]: { hits: updateHits, page }
-      },
-      isLoading: false,
-    })
+    // const updateHits = [
+    //   ...oldHits,
+    //   ...hits
+    // ]
+
+    // this.setState({
+    //   results: {
+    //     ...results,
+    //     [searchKey]: { hits: updateHits, page }
+    //   },
+    //   isLoading: false,
+    // })
+
+    //第二步 使用setState的第二种形式：函数形式
+    //你从state 变量中提取了一些值，但是更新状态时异步地依赖于之前的状态。现在你可以使用函数参数的形式来防止脏状态信息造成的bug。
+    // this.setState(prevState => {
+    //   const { searchKey, results } = prevState;
+
+    //   const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+
+    //   const updateHits = [
+    //     ...oldHits,
+    //     ...hits
+    //   ]
+
+    //   return {
+    //     results: {
+    //       ...results,
+    //       [searchKey]: { hits: updateHits, page }
+    //     },
+    //     isLoading: false,
+    //   }
+    // })
+
+    //第三步 提取函数
+    this.setState(withUpdateSearchTopStoriesState(hits, page));
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
