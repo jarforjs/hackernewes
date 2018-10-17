@@ -4,6 +4,7 @@ import Button from '../Button';
 import Search from '../Search';
 import Table from '../Table';
 import Loading from '../Loading';
+import { sortBy } from 'lodash';
 import {
   DEFAULT_QUERY,
   DEFAULT_HPP,
@@ -44,6 +45,14 @@ const ButtonWithLoading = withLoading(Button);
 //不用了，过滤时会直接向服务器发起请求
 // const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
 
+const SORTS = {
+  NONE: list => list,
+  TITLE: list => sortBy(list, 'title'),
+  AUTHOR: list => sortBy(list, 'author'),
+  COMMENTS: list => sortBy(list, 'num_comments').reverse(),
+  POINTS: list => sortBy(list, 'points').reverse(),
+}
+
 class App extends Component {
 
   constructor(props) {
@@ -55,6 +64,8 @@ class App extends Component {
       searchTerm: DEFAULT_QUERY,
       error: null,
       isLoading: false,
+      sortKey: 'NONE',
+      isSortReverse: false,
     }
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
@@ -63,6 +74,7 @@ class App extends Component {
     this.onDismiss = this.onDismiss.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchSubmit = this.onSearchSubmit.bind(this);
+    this.onSort = this.onSort.bind(this);
   }
 
   needsToSearchTopStories(searchTerm) {
@@ -143,6 +155,11 @@ class App extends Component {
     event.preventDefault();
   }
 
+  onSort(sortKey){
+    const isSortReverse = this.state.sortKey === sortKey && !this.state.isSortReverse;
+
+    this.setState({ sortKey, isSortReverse })
+  }
   componentDidMount() {
     const { searchTerm } = this.state;
     this.setState({ searchKey: searchTerm });
@@ -150,7 +167,7 @@ class App extends Component {
   }
 
   render() {
-    const { results, searchTerm, searchKey, error, isLoading } = this.state;
+    const { results, searchTerm, searchKey, error, isLoading, sortKey, isSortReverse } = this.state;
     const page = (results && results[searchKey] && results[searchKey].page) || 0;
     const list = (results && results[searchKey] && results[searchKey].hits) || [];
 
@@ -185,7 +202,7 @@ class App extends Component {
           </Search>
         </div>
         {
-          error ? <div className="interactions"><p>Something went wrong.</p></div> : <Table list={list} onDismiss={this.onDismiss} />
+          error ? <div className="interactions"><p>Something went wrong.</p></div> : <Table list={list} sortKey={sortKey} onSort={this.onSort} SORTS={SORTS} onDismiss={this.onDismiss} isSortReverse={isSortReverse} />
         }
         <div className="interactions">
           {/* {
