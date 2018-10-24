@@ -5,6 +5,8 @@ import Search from '../Search';
 import Table from '../Table';
 import Loading from '../Loading';
 import { sortBy } from 'lodash';
+import BasicSvg, { Logo, LinePattern, HeroPattern } from '../SVG/svg';
+import logo from '../SVG/logo.svg';
 import {
   DEFAULT_QUERY,
   DEFAULT_HPP,
@@ -54,7 +56,7 @@ const SORTS = {
 }
 
 
-const withUpdateSearchTopStoriesState = (hits, page) => prevState => {
+const withUpdateSearchTopStoriesState = (hits, page) => (prevState) => {
   const { searchKey, results } = prevState;
 
   const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
@@ -72,6 +74,7 @@ const withUpdateSearchTopStoriesState = (hits, page) => prevState => {
     isLoading: false,
   }
 }
+
 class App extends Component {
 
   constructor(props) {
@@ -217,6 +220,19 @@ class App extends Component {
 
     return (
       <div className="page">
+
+        <HeroPattern pttrn={'topography-pattern'}>
+          <div>
+            <h1 className="tweet-wall_headline">
+              What People Are Saying
+            </h1>
+            {/* <TweetWall tweetsIds={TWEET_IDS} /> */}
+          </div>
+        </HeroPattern>
+        <img src={logo} className="logo" alt="logo" />
+        <LinePattern />
+        <BasicSvg />
+        <Logo />
         {/* <form>
           <input type="text" value={searchTerm} onChange={this.onSearchChange}/>
         </form>

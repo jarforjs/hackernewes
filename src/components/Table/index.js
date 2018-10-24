@@ -38,7 +38,7 @@ class Table extends Component {
             <Sort sortKey={'AUTHOR'} onSort={this.onSort} activeSortKey={sortKey}>Author</Sort>
           </span>
           <span style={{ width: '10%' }}>
-            <Sort sortKey={'COMMENTS'} onSort={this.onSort} activeSortKey={sortKey}>Comments</Sort>
+            <Sort sortKey={'COMMENTS'} onSort={this.onSort} activeSortKey={sortKey}>Comments{this.state.count}</Sort>
           </span>
           <span style={{ width: '10%' }}>
             <Sort sortKey={'POINTS'} onSort={this.onSort} activeSortKey={sortKey}>Points</Sort>
