@@ -107,9 +107,22 @@ function App(props){
 // const withTodosNull = (Component) => (props) =>
 // 	!props.todos ? null :<Component { ...props } />
 
-const withCondition = (Component, conditionalRenderingFn) => (props) =>
-	conditionalRenderingFn(props) ? null :<Component { ...props } />
+// const withCondition = (Component, conditionalRenderingFn) => (props) =>
+// 	conditionalRenderingFn(props) ? null :<Component { ...props } />
 
 const conditioinFn = (props) => !props.todos;
 
-const TodoListWithCondition = withCondition(TodoList, conditioinFn);
+// const TodoListWithCondition = withCondition(TodoList, conditioinFn);
+
+//在composition中使用withCondition
+import { compose } from 'recomponse';
+const withConditionalRenderings = compose(
+	withLoadingIndicator,
+	withCondition(conditioinFn),
+	withTodosEmpty
+)
+const TodoListWithConditionalRendering = withConditionalRenderings(TodoList);
+
+//你可能发现withCondition中需要两个参数，但是compose函数工作时只是传递了一个值给返回的函数。这是函数式编程中的问题，你经常只会传递一个参数，这就是currying存在的原因。然而你并不用担心何是curry函数。你只需使用另一个高阶函数来替换withCondition高阶函数中那两个参数。
+const withCondition = (conditionalRenderingFn) => (Component) => (props) =>
+	conditionalRenderingFn(props) ? null : <Component { ...props } />
