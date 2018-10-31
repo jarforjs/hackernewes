@@ -1,4 +1,12 @@
 function TodoList({ todos, isLoadingTodos }) {
+	if(isLoadingTodos){
+		return (
+			<div>
+				<p>Loading todos...</p>
+			</div>
+		)
+	}
+
 	if(!todos){
 		return null;
 	}
@@ -11,14 +19,6 @@ function TodoList({ todos, isLoadingTodos }) {
 		)
 	}
 	
-	if(isLoadingTodos){
-		return (
-			<div>
-				<p>Loading todos...</p>
-			</div>
-		)
-	}
-
 	return (
 		<div>
 			{
