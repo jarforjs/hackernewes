@@ -6,7 +6,7 @@ const LoadingIndicator = () =>
 const EmptyMessage = () =>
 	<p>You have no Todos.</p>
 
-const conditioinFn = (props) => !props.todos;
+const conditionFn = (props) => !props.todos;
 
 const withEither = (conditionalRenderingFn, EitherComponent) => (Component) => (props) => {
 	conditionalRenderingFn(props) ? <EitherComponent /> : <Component { ...props } />
@@ -23,7 +23,7 @@ const TodoList = ({ todos }) =>
 	
 const withConditionalRenderings = compose(
 	withEither(isLoadingConditionFn, LoadingIndicator),
-	withMaybe(conditioinFn),
+	withMaybe(conditionFn),
 	withEither(isEmptyConditionFn, EmptyMessage)
 )
 

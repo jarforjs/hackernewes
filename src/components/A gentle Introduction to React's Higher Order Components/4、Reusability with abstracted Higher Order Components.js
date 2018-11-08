@@ -1,6 +1,6 @@
 import { compose } from 'recomponse';
 
-const withLoadingIndicator = (Component) => ({ isLoadingTodos, ...others}) =>
+const withLoadingIndicator = (Component) => ({ isLoadingTodos, ...others }) =>
 	isLoadingTodos ? <p>Loading todos ...</p> : <Component { ...others } />
 
 const withCondition = (conditionalRenderingFn) => (Component) => (props) =>
