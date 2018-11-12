@@ -14,6 +14,7 @@ const Sort = ({ sortKey, onSort, children, activeSortKey }) =>{
 	)
 }
 
+
 export default Sort;
 
 Sort.propTypes = {

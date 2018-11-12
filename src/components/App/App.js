@@ -30,9 +30,7 @@ import {
 // const withFooo = (Component) => (props) =>
 //   <Component { ...props } />
 
-const withLoading = (Component) => ({ isLoading, ...rest }) =>
-  isLoading ? <Loading /> : <Component {...rest} />
-
+const withLoading = (Component) => ({ isLoading, ...rest }) => isLoading ? <Loading /> : <Component {...rest} />
 
 const ButtonWithLoading = withLoading(Button);
 
@@ -55,6 +53,30 @@ const SORTS = {
   POINTS: list => sortBy(list, 'points').reverse(),
 }
 
+const withInfiniteScroll = (Component) =>
+	class WithInfiniteScroll extends Component {
+		componentDidMount () {
+			window.addEventListener('scroll', this.onScroll, false)
+		}
+
+		componentWillUnmount() {
+			window.removeEventListener('scroll', this.onScroll, false)
+		}
+
+		onScroll = () => {
+			const { onFetchSearchTopStories, page, searchKey, list } = this.props
+			// innerHeight 浏览器可见高度
+			// scrollY 垂直方向已经滚去的像素值
+			// offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
+			if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length){
+				onFetchSearchTopStories(searchKey, page + 1)
+			}
+		}
+
+		render() {
+			return <Component {...this.props}/>
+		}
+	}
 
 const withUpdateSearchTopStoriesState = (hits, page) => (prevState) => {
   const { searchKey, results } = prevState;
@@ -257,7 +279,7 @@ class App extends Component {
           </Search>
         </div>
         {
-          error ? <div className="interactions"><p>Something went wrong.</p></div> : <Table list={list} SORTS={SORTS} onDismiss={this.onDismiss} />
+          error ? <div className="interactions"><p>Something went wrong.</p></div> : <Table list={list} SORTS={SORTS} onDismiss={this.onDismiss} onFetchSearchTopStories={this.fetchSearchTopStories} searchKey={searchKey} page={page} />
         }
         <div className="interactions">
           {/* {
