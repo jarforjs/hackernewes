@@ -15,11 +15,11 @@ const withInfiniteScroll = (Component) =>
 	  }
 
 	  onScroll = () => {
-	    const { onFetchSearchTopStories, page, searchKey, list } = this.props
+	    const { onFetchSearchTopStories, page, searchKey, list, isLoading } = this.props
 	    // innerHeight 浏览器可见高度
 	    // scrollY 垂直方向已经滚去的像素值
 	    // offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
-	    if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length){
+	    if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading){
 	      onFetchSearchTopStories(searchKey, page + 1)
 	    }
 	  }
@@ -29,7 +29,6 @@ const withInfiniteScroll = (Component) =>
     }
   }
 
-@withInfiniteScroll()
 class Table extends Component {
   constructor(props) {
     super(props);
@@ -48,6 +47,7 @@ class Table extends Component {
     this.setState({ sortKey, isSortReverse })
   }
 
+  // 提取
   // componentDidMount () {
   //   window.addEventListener('scroll', this.onScroll, false)
   // }
@@ -57,11 +57,11 @@ class Table extends Component {
   // }
   //
   // onScroll = () => {
-  //   const { onFetchSearchTopStories, page, searchKey, list } = this.props
+  //   const { onFetchSearchTopStories, page, searchKey, list, isLoading } = this.props
   //   // innerHeight 浏览器可见高度
   //   // scrollY 垂直方向已经滚去的像素值
   //   // offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
-  //   if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length){
+  //   if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading){
   //     onFetchSearchTopStories(searchKey, page + 1)
   //   }
   // }
@@ -112,7 +112,7 @@ class Table extends Component {
   }
 }
 
-export default Table;
+export default withInfiniteScroll(Table);
 
 // Table.PropTypes = {
 //   list: PropTypes.array.isRequired,
