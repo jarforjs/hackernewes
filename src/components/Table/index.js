@@ -3,31 +3,7 @@ import React, { Component } from 'react';
 import Button from '../Button';
 import PropTypes from 'prop-types';
 import Sort from '../Sort';
-
-const withInfiniteScroll = (Component) =>
-  class WithInfiniteScroll extends Component {
-	  componentDidMount () {
-	    window.addEventListener('scroll', this.onScroll, false)
-	  }
-
-	  componentWillUnmount() {
-	    window.removeEventListener('scroll', this.onScroll, false)
-	  }
-
-	  onScroll = () => {
-	    const { onFetchSearchTopStories, page, searchKey, list, isLoading } = this.props
-	    // innerHeight 浏览器可见高度
-	    // scrollY 垂直方向已经滚去的像素值
-	    // offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
-	    if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading){
-	      onFetchSearchTopStories(searchKey, page + 1)
-	    }
-	  }
-
-	  render() {
-	    return <Component {...this.props}/>
-    }
-  }
+import moment from 'moment';
 
 class Table extends Component {
   constructor(props) {
@@ -78,8 +54,11 @@ class Table extends Component {
           <span style={{ width: '40%' }}>
             <Sort sortKey={'TITLE'} onSort={this.onSort} activeSortKey={sortKey}>Title</Sort>
           </span>
-          <span style={{ width: '30%' }}>
+          <span style={{ width: '15%' }}>
             <Sort sortKey={'AUTHOR'} onSort={this.onSort} activeSortKey={sortKey}>Author</Sort>
+          </span>
+          <span style={{ width: '15%' }}>
+            <Sort sortKey={'CREATED'} onSort={this.onSort} activeSortKey={sortKey}>Created</Sort>
           </span>
           <span style={{ width: '10%' }}>
             <Sort sortKey={'COMMENTS'} onSort={this.onSort} activeSortKey={sortKey}>Comments{this.state.count}</Sort>
@@ -97,7 +76,8 @@ class Table extends Component {
               <span style={{ width: '40%' }}>
                 <a href={item.url}>{item.title}</a>
               </span>
-              <span style={{ width: '30%' }}>{item.author}</span>
+              <span style={{ width: '15%' }}>{item.author}</span>
+              <span style={{ width: '15%' }}>{moment(item.created_at).format('YYYY-MM-DD')}</span>
               <span style={{ width: '10%' }}>{item.num_comments}</span>
               <span style={{ width: '10%' }}>{item.points}</span>
               <span style={{ width: '10%' }}>
@@ -112,7 +92,7 @@ class Table extends Component {
   }
 }
 
-export default withInfiniteScroll(Table);
+export default Table;
 
 // Table.PropTypes = {
 //   list: PropTypes.array.isRequired,
@@ -131,7 +111,4 @@ Table.propTypes = {
   ).isRequired,
   onDismiss: PropTypes.func.isRequired,
   SORTS: PropTypes.object.isRequired,
-  onFetchSearchTopStories:PropTypes.func.isRequired,
-  searchKey: PropTypes.string,
-  page: PropTypes.number.isRequired,
 }

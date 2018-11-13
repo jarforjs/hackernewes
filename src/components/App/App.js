@@ -1,9 +1,11 @@
-import React, { Component } from 'react';
+import React from 'react';
 import './App.css';
 import Button from '../Button';
 import Search from '../Search';
 import Table from '../Table';
 import Loading from '../Loading';
+// eslint-disable-next-line
+import { compose } from 'recompose';
 import { sortBy } from 'lodash';
 import BasicSvg, { Logo, LinePattern, HeroPattern } from '../SVG/svg';
 import logo from '../SVG/logo.svg';
@@ -30,9 +32,9 @@ import {
 // const withFooo = (Component) => (props) =>
 //   <Component { ...props } />
 
-const withLoading = (Component) => ({ isLoading, ...rest }) => isLoading ? <Loading /> : <Component {...rest} />
-
-const ButtonWithLoading = withLoading(Button);
+// const withLoading = (Component) => ({ isLoading, ...rest }) => isLoading ? <Loading /> : <Component {...rest} />
+//
+// const ButtonWithLoading = withLoading(Button);
 
 //es5
 // function isSearched(searchTerm){
@@ -49,6 +51,7 @@ const SORTS = {
   NONE: list => list,
   TITLE: list => sortBy(list, 'title'),
   AUTHOR: list => sortBy(list, 'author'),
+  CREATED: list => sortBy(list, 'created_at'),
   COMMENTS: list => sortBy(list, 'num_comments').reverse(),
   POINTS: list => sortBy(list, 'points').reverse(),
 }
@@ -72,7 +75,7 @@ const withUpdateSearchTopStoriesState = (hits, page) => (prevState) => {
   }
 }
 
-class App extends Component {
+class App extends React.Component {
 
   constructor(props) {
     super(props);
@@ -83,6 +86,7 @@ class App extends Component {
       searchTerm: DEFAULT_QUERY,
       error: null,
       isLoading: false,
+	    page: 0,
     }
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
@@ -151,8 +155,14 @@ class App extends Component {
     fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
       .then(response => response.json())
       .then(result => this.setSearchTopStories(result))
-      .catch(e => this.setState({ error: e }));
+      .catch(this.onSetError);
   }
+
+  onSetError = (e) =>
+	  this.setState({
+		  error: e,
+		  isLoading: false,
+	  })
 
   onDismiss(id) {
     // const list = this.state.list.filter((item)=>{
@@ -249,25 +259,118 @@ class App extends Component {
           )
         } */}
         <div className="interactions">
-          <Search value={searchTerm} onChange={this.onSearchChange} onSubmit={this.onSearchSubmit}>
+          <Search
+	          value={searchTerm}
+	          onChange={this.onSearchChange}
+	          onSubmit={this.onSearchSubmit}>
             Search
           </Search>
         </div>
-        {
-          error ? <div className="interactions"><p>Something went wrong.</p></div> : <Table list={list} SORTS={SORTS} onDismiss={this.onDismiss} onFetchSearchTopStories={this.fetchSearchTopStories} searchKey={searchKey} page={page} isLoading={isLoading} />
-        }
-        <div className="interactions">
-          {/* {
-            isLoading ? <Loading /> : <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>More</Button>
-          } */}
-          <ButtonWithLoading isLoading={isLoading} onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
-            More
-          </ButtonWithLoading>
-        </div>
+	      <AdvancedList
+		      list={list}
+		      page={page}
+		      SORTS={SORTS}
+		      error={error}
+		      isLoading={isLoading}
+		      searchKey={searchKey}
+		      onDismiss={this.onDismiss}
+		      onFetchSearchTopStories={this.fetchSearchTopStories}
+	      />
       </div>
     );
   }
 }
+
+// {
+// 	error ? <div className="interactions">
+// 		<p>Something went wrong.</p>
+// 		<ButtonWithLoading isLoading={isLoading} onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
+// 			Try Again
+// 		</ButtonWithLoading>
+// 	</div> : <AdvancedList list={list} SORTS={SORTS} error={error} onDismiss={this.onDismiss} onFetchSearchTopStories={this.fetchSearchTopStories} searchKey={searchKey} page={page} isLoading={isLoading} />
+// }
+// <div className="interactions">
+// 	{/* {
+//             isLoading ? <Loading /> : <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>More</Button>
+//           } */}
+// 	<ButtonWithLoading isLoading={isLoading} onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
+// 		Try Again
+// 	</ButtonWithLoading>
+// </div>
+
+const withLoading = (conditionFn) => (Component) => (props) =>
+	<div>
+		<Component {...props} />
+
+		<div className="interactions">
+			{conditionFn(props) && <Loading/>}
+		</div>
+	</div>
+
+const withInfiniteScroll = (conditionFn) => (Component) =>
+	class WithInfiniteScroll extends React.Component {
+		componentDidMount () {
+			window.addEventListener('scroll', this.onScroll, false)
+		}
+
+		componentWillUnmount() {
+			window.removeEventListener('scroll', this.onScroll, false)
+		}
+
+		onScroll = () => {
+			const {searchKey, page, onFetchSearchTopStories, ...rest} = this.props
+			conditionFn(rest) && onFetchSearchTopStories(searchKey, page + 1)
+			// const { list, isLoading, error } = this.props
+			// innerHeight 浏览器可见高度
+			// scrollY 垂直方向已经滚去的像素值
+			// offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
+			// if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading && !error){
+			// 	onFetchSearchTopStories(searchKey, page + 1)
+			// }
+		}
+
+		render () {
+			return <Component {...this.props}/>
+		}
+	}
+
+const withPaginated = (conditionFn)=> (Component) => (props) =>
+	<div>
+		<Component {...props} />
+
+		<div className="interactions">
+			{
+				conditionFn(props) && <div>
+					<p>Something is wrong: {props.error.message}</p>
+					<Button onClick={() => props.onFetchSearchTopStories(props.searchKey, props.page + 1)}>
+						Try Again
+					</Button>
+				</div>
+			}
+		</div>
+	</div>
+
+const loadingCondition = ({isLoading}) =>
+	isLoading
+
+const infiniteScrollCondition = ({list, isLoading, error}) =>
+	// innerHeight 浏览器可见高度
+	// scrollY 垂直方向已经滚去的像素值
+	// offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
+	(window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500)
+	&& list.length
+	&& !isLoading
+	&& !error
+
+const paginatedCondition = ({page, isLoading, error}) =>{
+	return page !== null && !isLoading && error
+}
+
+const AdvancedList = compose(
+	withPaginated(paginatedCondition),
+	withInfiniteScroll(infiniteScrollCondition),
+	withLoading(loadingCondition)
+)(Table)
 
 export default App;
 
