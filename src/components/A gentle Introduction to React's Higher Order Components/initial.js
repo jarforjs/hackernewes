@@ -4,7 +4,7 @@
 // 	// if(!todos){
 // 	// 	return null;
 // 	// }
-	
+
 // 	//2
 // 	// if(!todos.length){
 // 	// 	return (
@@ -13,7 +13,7 @@
 // 	// 		</div>
 // 	// 	)
 // 	// }
-	
+
 // 	//3
 // 	// if(isLoadingTodos){
 // 	// 	return (
@@ -39,28 +39,6 @@
 // 	}
 // }
 //对null的处理转为箭头写法
-const withTodosNull = (Component) => (props) =>
-	!props.todos ? null :<Component { ...props } />
-
-//2对Empty的处理
-const withTodosEmpty = (Component) => (props) =>
-	!props.todos.length ? <p>You have no Todos.</p> : <Component { ...props } />
-
-//3对Loading的处理
-const withLoadingIndicator = (Component) => ({ isLoadingTodos, ...others}) =>
-	isLoadingTodos ? <p>Loading todos ...</p> : <Component { ...others } />
-
-//4对TodoLlist的改造
-function TodoList({ todos }) {
-	return (
-		<div>
-			{
-				todos.map(todo => <TodoItem key={todo.id} todo={todoo} />)
-			}
-		</div>
-	)
-}
-
 // //a.让4结合1,把Component传给1
 // const TodoListWithNull = withTodosNull(TodoList);
 // //b.让4结合1,把todos传给1
@@ -88,18 +66,42 @@ function TodoList({ todos }) {
 //但是这样不具可读性，react具备函数式编程思想，为什么我们不实用这些呢？
 //小的高阶组件库内置很多高阶组件，你可以重复使用他们
 import { compose } from 'recomponse';
+
+// const TodoListWithCondition = withCondition(TodoList, conditioinFn);
+
+//在composition中使用withCondition
+import { compose } from 'recomponse';
+
+const withTodosNull = Component => props => !props.todos ? null : <Component {...props} />
+
+//2对Empty的处理
+const withTodosEmpty = Component => props => !props.todos.length ? <p>You have no Todos.</p> : <Component {...props} />
+
+//3对Loading的处理
+const withLoadingIndicator = Component => ({ isLoadingTodos, ...others }) => isLoadingTodos ? <p>Loading todos ...</p> : <Component {...others} />
+
+//4对TodoLlist的改造
+function TodoList({ todos }) {
+  return (
+    <div>
+      {
+				todos.map(todo => <TodoItem key={todo.id} todo={todoo} />)
+			}
+    </div>
+  )
+}
 const withConditionalRenderings = compose(
-	withLoadingIndicator,
-	withTodosNull,
-	withTodosEmpty
+  withLoadingIndicator,
+  withTodosNull,
+  withTodosEmpty
 )
 const TodoListWithConditionalRendering = withConditionalRenderings(TodoList);
 
 //5重构之后
 function App(props){
-	return (
-		<TodoListWithConditionalRendering todos={props.todos} isLoadingTodos={props.isLoadingTodos} />
-	)
+  return (
+    <TodoListWithConditionalRendering todos={props.todos} isLoadingTodos={props.isLoadingTodos} />
+  )
 }
 
 //6抽象高阶组件的可重用性
@@ -110,19 +112,14 @@ function App(props){
 // const withCondition = (Component, conditionalRenderingFn) => (props) =>
 // 	conditionalRenderingFn(props) ? null :<Component { ...props } />
 
-const conditioinFn = (props) => !props.todos;
+const conditioinFn = props => !props.todos;
 
-// const TodoListWithCondition = withCondition(TodoList, conditioinFn);
-
-//在composition中使用withCondition
-import { compose } from 'recomponse';
 const withConditionalRenderings = compose(
-	withLoadingIndicator,
-	withCondition(conditioinFn),
-	withTodosEmpty
+  withLoadingIndicator,
+  withCondition(conditioinFn),
+  withTodosEmpty
 )
 const TodoListWithConditionalRendering = withConditionalRenderings(TodoList);
 
 //你可能发现withCondition中需要两个参数，但是compose函数工作时只是传递了一个值给返回的函数。这是函数式编程中的问题，你经常只会传递一个参数，这就是currying存在的原因。然而你并不用担心何是curry函数。你只需使用另一个高阶函数来替换withCondition高阶函数中那两个参数。
-const withCondition = (conditionalRenderingFn) => (Component) => (props) =>
-	conditionalRenderingFn(props) ? null : <Component { ...props } />
+const withCondition = conditionalRenderingFn => Component => props => conditionalRenderingFn(props) ? null : <Component {...props} />

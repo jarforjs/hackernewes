@@ -2,13 +2,13 @@ const firstname = 'gu';
 const lastname = 'hongbo';
 
 const person = {
-	firstname,
-	lastname
+  firstname,
+  lastname
 }
 
 export {
-	firstname,
-	lastname
+  firstname,
+  lastname
 }
 
 export default person;

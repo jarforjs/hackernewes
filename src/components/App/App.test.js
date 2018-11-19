@@ -7,7 +7,7 @@ import App, { Search, Button, Table } from './App';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-describe('App',() => {
+describe('App', () => {
   it('renders without crashing', () => {
     const div = document.createElement('div');
     ReactDOM.render(<App />, div);
@@ -24,7 +24,7 @@ describe('App',() => {
   })
 })
 
-describe('Search',() => {
+describe('Search', () => {
   it('renders without crashing', () => {
     const div = document.createElement('div');
     ReactDOM.render(<Search>Search</Search>, div);
@@ -41,7 +41,7 @@ describe('Search',() => {
   })
 })
 
-describe('Button',() => {
+describe('Button', () => {
   it('renders without crashing', () => {
     const div = document.createElement('div');
     ReactDOM.render(<Button>Give me more</Button>, div);
@@ -58,26 +58,29 @@ describe('Button',() => {
   })
 })
 
-describe('Table',() => {
-
+describe('Table', () => {
   const props = {
     list: [
-      { title: '1', author :'1', num_comments: 1, points: 2, objectID: 'y'},
-      { title: '2', author :'2', num_comments: 1, points: 2, objectID: 'z'},
+      {
+        title: '1', author :'1', num_comments: 1, points: 2, objectID: 'y'
+      },
+      {
+        title: '2', author :'2', num_comments: 1, points: 2, objectID: 'z'
+      },
     ],
     sortKey: 'TITLE',
     isSortReverse: false,
   }
-  
+
   it('renders without crashing', () => {
     const div = document.createElement('div');
-    ReactDOM.render(<Table { ...props }/>, div);
+    ReactDOM.render(<Table {...props} />, div);
     ReactDOM.unmountComponentAtNode(div);
   });
 
   test('has a valid snapshot', () => {
     const component = renderer.create(
-      <Table { ...props }/>
+      <Table {...props} />
     );
 
     let tree = component.toJSON();
@@ -86,7 +89,7 @@ describe('Table',() => {
 
   it('shows two items in list', () => {
     const element = shallow(
-      <Table { ...props } />
+      <Table {...props} />
     );
     expect(element.find('.table-row').length).toBe(2);
   })

@@ -1,12 +1,12 @@
 import React from 'react';
 import './App.css';
+import { compose } from 'recompose';
+import axios from 'axios';
+import { sortBy } from 'lodash';
 import Button from '../Button';
 import Search from '../Search';
 import Table from '../Table';
 import Loading from '../Loading';
-// eslint-disable-next-line
-import { compose } from 'recompose';
-import { sortBy } from 'lodash';
 import BasicSvg, { Logo, LinePattern, HeroPattern } from '../SVG/svg';
 import logo from '../SVG/logo.svg';
 import {
@@ -76,7 +76,6 @@ const withUpdateSearchTopStoriesState = (hits, page) => (prevState) => {
 }
 
 class App extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -104,7 +103,7 @@ class App extends React.Component {
   setSearchTopStories(result) {
     const { hits, page } = result;
 
-    //第一步 使用对象形式
+    //1 对象形式
     //在setState中使用函数取代对象形式更新状态信息
     //如果你的setState() 方法依赖于之前的状态或者属性的话，有可能在按批次执行的期间，状态或者属性的值就已经被改变了。
     // const { searchKey, results } = this.state;
@@ -124,7 +123,7 @@ class App extends React.Component {
     //   isLoading: false,
     // })
 
-    //第二步 使用setState的第二种形式：函数形式
+    //2 使用setState的第二种形式：函数形式
     //你从state 变量中提取了一些值，但是更新状态时异步地依赖于之前的状态。现在你可以使用函数参数的形式来防止脏状态信息造成的bug。
     // this.setState(prevState => {
     //   const { searchKey, results } = prevState;
@@ -145,21 +144,23 @@ class App extends React.Component {
     //   }
     // })
 
-    //第三步 提取函数
+    //3 提取函数
     this.setState(withUpdateSearchTopStoriesState(hits, page));
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
-    this.setState({ isLoading: true });
+    this.setState({ isLoading: true, error: null });
 
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-      .then(response => response.json())
-      .then(result => this.setSearchTopStories(result))
+    axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+      .then(result => this.setSearchTopStories(result.data))
       .catch(this.onSetError);
+    // fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    //   .then(response => response.json())
+    //   .then(result => this.setSearchTopStories(result))
+    //   .catch(this.onSetError);
   }
 
-  onSetError = (e) =>
-	  this.setState({
+  onSetError = e => this.setState({
 		  error: e,
 		  isLoading: false,
 	  })
@@ -216,7 +217,9 @@ class App extends React.Component {
   }
 
   render() {
-    const { results, searchTerm, searchKey, error, isLoading } = this.state;
+    const {
+      results, searchTerm, searchKey, error, isLoading
+    } = this.state;
     const page = (results && results[searchKey] && results[searchKey].page) || 0;
     const list = (results && results[searchKey] && results[searchKey].hits) || [];
 
@@ -228,7 +231,7 @@ class App extends React.Component {
     return (
       <div className="page">
 
-        <HeroPattern pttrn={'topography-pattern'}>
+        <HeroPattern pttrn="topography-pattern">
           <div>
             <h1 className="tweet-wall_headline">
               What People Are Saying
@@ -260,22 +263,23 @@ class App extends React.Component {
         } */}
         <div className="interactions">
           <Search
-	          value={searchTerm}
-	          onChange={this.onSearchChange}
-	          onSubmit={this.onSearchSubmit}>
+            value={searchTerm}
+            onChange={this.onSearchChange}
+            onSubmit={this.onSearchSubmit}
+          >
             Search
           </Search>
         </div>
-	      <AdvancedList
-		      list={list}
-		      page={page}
-		      SORTS={SORTS}
-		      error={error}
-		      isLoading={isLoading}
-		      searchKey={searchKey}
-		      onDismiss={this.onDismiss}
-		      onFetchSearchTopStories={this.fetchSearchTopStories}
-	      />
+        <AdvancedList
+          list={list}
+          page={page}
+          SORTS={SORTS}
+          error={error}
+          isLoading={isLoading}
+          searchKey={searchKey}
+          onDismiss={this.onDismiss}
+          onFetchSearchTopStories={this.fetchSearchTopStories}
+        />
       </div>
     );
   }
@@ -298,8 +302,8 @@ class App extends React.Component {
 // 	</ButtonWithLoading>
 // </div>
 
-const withLoading = (conditionFn) => (Component) => (props) =>
-	<div>
+const withLoading = conditionFn => Component => props =>
+  <div>
 		<Component {...props} />
 
 		<div className="interactions">
@@ -307,41 +311,44 @@ const withLoading = (conditionFn) => (Component) => (props) =>
 		</div>
 	</div>
 
-const withInfiniteScroll = (conditionFn) => (Component) =>
-	class WithInfiniteScroll extends React.Component {
-		componentDidMount () {
-			window.addEventListener('scroll', this.onScroll, false)
-		}
+const withInfiniteScroll = conditionFn => Component =>
+  class WithInfiniteScroll extends React.Component {
+    componentDidMount () {
+      window.addEventListener('scroll', this.onScroll, false)
+    }
 
-		componentWillUnmount() {
-			window.removeEventListener('scroll', this.onScroll, false)
-		}
+    componentWillUnmount() {
+      window.removeEventListener('scroll', this.onScroll, false)
+    }
 
-		onScroll = () => {
-			const {searchKey, page, onFetchSearchTopStories, ...rest} = this.props
-			conditionFn(rest) && onFetchSearchTopStories(searchKey, page + 1)
-			// const { list, isLoading, error } = this.props
-			// innerHeight 浏览器可见高度
-			// scrollY 垂直方向已经滚去的像素值
-			// offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
-			// if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading && !error){
-			// 	onFetchSearchTopStories(searchKey, page + 1)
-			// }
-		}
+    onScroll = () => {
+      const {
+        searchKey, page, onFetchSearchTopStories, ...rest
+      } = this.props
 
-		render () {
-			return <Component {...this.props}/>
-		}
-	}
+      conditionFn(rest) && onFetchSearchTopStories(searchKey, page + 1)
+      // const { list, isLoading, error } = this.props
+      // innerHeight 浏览器可见高度
+      // scrollY 垂直方向已经滚去的像素值
+      // offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
+      // if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading && !error){
+      // onFetchSearchTopStories(searchKey, page + 1)
+      // }
+    }
 
-const withPaginated = (conditionFn)=> (Component) => (props) =>
-	<div>
+    render () {
+      return <Component {...this.props} />
+    }
+  }
+
+const withPaginated = conditionFn => Component => props =>
+  <div>
 		<Component {...props} />
 
 		<div className="interactions">
 			{
 				conditionFn(props) && <div>
-					<p>Something is wrong: {props.error.message}</p>
+					<p>Something was wrong ……</p>
 					<Button onClick={() => props.onFetchSearchTopStories(props.searchKey, props.page + 1)}>
 						Try Again
 					</Button>
@@ -350,26 +357,18 @@ const withPaginated = (conditionFn)=> (Component) => (props) =>
 		</div>
 	</div>
 
-const loadingCondition = ({isLoading}) =>
-	isLoading
+const loadingCondition = ({ isLoading }) => isLoading
 
-const infiniteScrollCondition = ({list, isLoading, error}) =>
-	// innerHeight 浏览器可见高度
-	// scrollY 垂直方向已经滚去的像素值
-	// offsetHeight 是一个只读属性，它返回该元素的像素高度，高度包含该元素的垂直内边距和边框，且是一个整数
-	(window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500)
-	&& list.length
-	&& !isLoading
-	&& !error
+const infiniteScrollCondition = ({ list, isLoading, error }) => (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && list.length && !isLoading && !error
 
-const paginatedCondition = ({page, isLoading, error}) =>{
-	return page !== null && !isLoading && error
+const paginatedCondition = ({ page, isLoading, error }) => {
+  return page !== null && !isLoading && error
 }
 
 const AdvancedList = compose(
-	withPaginated(paginatedCondition),
-	withInfiniteScroll(infiniteScrollCondition),
-	withLoading(loadingCondition)
+  withPaginated(paginatedCondition),
+  withInfiniteScroll(infiniteScrollCondition),
+  withLoading(loadingCondition)
 )(Table)
 
 export default App;

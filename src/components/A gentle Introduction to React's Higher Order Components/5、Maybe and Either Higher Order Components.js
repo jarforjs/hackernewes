@@ -1,33 +1,28 @@
 import { compose } from 'recomponse';
 
-const LoadingIndicator = () =>
-	<p>Loading todos ...</p>
+const LoadingIndicator = () => <p>Loading todos ...</p>
 
-const EmptyMessage = () =>
-	<p>You have no Todos.</p>
+const EmptyMessage = () => <p>You have no Todos.</p>
 
-const conditionFn = (props) => !props.todos;
+const conditionFn = props => !props.todos;
 
-const withEither = (conditionalRenderingFn, EitherComponent) => (Component) => (props) => {
-	conditionalRenderingFn(props) ? <EitherComponent /> : <Component { ...props } />
+const withEither = (conditionalRenderingFn, EitherComponent) => Component => (props) => {
+  conditionalRenderingFn(props) ? <EitherComponent /> : <Component {...props} />
 }
 
-const withMaybe = (conditionalRenderingFn) => (Component) => (props) =>
-	conditionalRenderingFn(props) ? null : <Component { ...props } />
+const withMaybe = conditionalRenderingFn => Component => props => conditionalRenderingFn(props) ? null : <Component {...props} />
 
-const isLoadingConditionFn = (props) => props.isLoadingTodos;
-const isEmptyConditionFn = (props) => !props.todos.length;
+const isLoadingConditionFn = props => props.isLoadingTodos;
+const isEmptyConditionFn = props => !props.todos.length;
 
-const TodoList = ({ todos }) =>
-	<div>{todos.map(todo => <TodoItem key={todo.id} todo={todoo} />)}</div>
-	
+const TodoList = ({ todos }) => <div>{todos.map(todo => <TodoItem key={todo.id} todo={todoo} />)}</div>
+
 const withConditionalRenderings = compose(
-	withEither(isLoadingConditionFn, LoadingIndicator),
-	withMaybe(conditionFn),
-	withEither(isEmptyConditionFn, EmptyMessage)
+  withEither(isLoadingConditionFn, LoadingIndicator),
+  withMaybe(conditionFn),
+  withEither(isEmptyConditionFn, EmptyMessage)
 )
 
 const TodoListWithConditionalRendering = withConditionalRenderings(TodoList);
 
-const App = (props) =>
-	<TodoListWithConditionalRendering todos={props.todos} isLoadingTodos={props.isLoadingTodos} />
+const App = props => <TodoListWithConditionalRendering todos={props.todos} isLoadingTodos={props.isLoadingTodos} />
