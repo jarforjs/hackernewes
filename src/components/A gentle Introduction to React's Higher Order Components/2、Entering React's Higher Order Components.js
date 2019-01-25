@@ -1,8 +1,8 @@
+const withLoadingIndicator = Component => ({ isLoadingTodos, ...others }) => isLoadingTodos ? <div><p>Loading todos ...</p></div> : <Component {...others} />
+
 const withTodosNull = Component => props => !props.todos ? null : <Component {...props} />
 
 const withTodosEmpty = Component => props => !props.todos.length ? <div><p>You have no Todos.</p></div> : <Component {...props} />
-
-const withLoadingIndicator = Component => ({ isLoadingTodos, ...others }) => isLoadingTodos ? <div><p>Loading todos ...</p></div> : <Component {...others} />
 
 function TodoList({ todos }) {
   return (

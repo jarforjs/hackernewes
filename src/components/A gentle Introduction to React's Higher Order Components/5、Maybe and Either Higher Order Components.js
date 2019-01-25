@@ -4,11 +4,10 @@ const LoadingIndicator = () => <p>Loading todos ...</p>
 
 const EmptyMessage = () => <p>You have no Todos.</p>
 
-const conditionFn = props => !props.todos;
+const conditionFn = props => !props.todos
 
-const withEither = (conditionalRenderingFn, EitherComponent) => Component => (props) => {
+const withEither = (conditionalRenderingFn, EitherComponent) => Component => (props) =>
   conditionalRenderingFn(props) ? <EitherComponent /> : <Component {...props} />
-}
 
 const withMaybe = conditionalRenderingFn => Component => props => conditionalRenderingFn(props) ? null : <Component {...props} />
 
